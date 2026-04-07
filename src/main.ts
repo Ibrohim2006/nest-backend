@@ -5,6 +5,9 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
 import { SwaggerBuilder } from './swagger/swagger.builder';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -16,6 +19,12 @@ async function bootstrap() {
     app.setGlobalPrefix('/api/v1');
 
     app.useGlobalPipes(new ZodValidationPipe());
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new TransformInterceptor(),
+  );
+    
 
     app.enableCors({
       origin: '*',
