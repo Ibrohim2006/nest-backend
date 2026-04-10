@@ -1,5 +1,11 @@
-import z from 'zod';
+export interface RedisConfig {
+  url: string;
+}
 
-export const redisConfigSchema = z.object({
-  REDIS_URL: z.string().default('redis://localhost:6379'),
-});
+export const redisConfig = (): RedisConfig => {
+  const url = process.env.REDIS_URL;
+  if (!url) {
+    throw new Error('REDIS_URL is not set in .env');
+  }
+  return { url };
+};

@@ -1,24 +1,34 @@
-import { Injectable, Logger } from '@nestjs/common';
-import z from 'zod';
-import { ConfigSchema, configSchema } from './config.schema';
+import { Injectable } from '@nestjs/common';
+import { databaseConfig, DatabaseConfig } from './database/databae.config';
+import { redisConfig, RedisConfig } from './redis/redis.config';
 
 @Injectable()
 export class ConfigService {
-  private readonly logger = new Logger(ConfigService.name);
-  private readonly config: ConfigSchema;
+  private readonly dbConfig: DatabaseConfig;
+  private readonly rConfig: RedisConfig;
 
   constructor() {
-    const result = configSchema.safeParse(process.env);
+    this.dbConfig = databaseConfig();
+    this.rConfig = redisConfig();
 
-    if (!result.success) {
-      this.logger.error(z.prettifyError(result.error));
-      process.exit(1);
+    if (!process.env.APP_PORT || !process.env.NODE_ENV) {
+      throw new Error('APP_PORT or NODE_ENV is not set in .env');
     }
-
-    this.config = result.data;
   }
 
-  get<K extends keyof ConfigSchema>(key: K): ConfigSchema[K] {
-    return this.config[key];
+  get appPort(): number {
+    return parseInt(process.env.APP_PORT!, 10);
+  }
+
+  get nodeEnv(): 'development' | 'production' | 'test' {
+    return process.env.NODE_ENV as any;
+  }
+
+  get database(): DatabaseConfig {
+    return this.dbConfig;
+  }
+
+  get redis(): RedisConfig {
+    return this.rConfig;
   }
 }

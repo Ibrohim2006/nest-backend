@@ -1,51 +1,28 @@
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
-import { SwaggerBuilder } from './swagger/swagger.builder';
-import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { SwaggerBuilder } from '../swagger/swagger.builder';
+import { CustomValidationPipe } from './pipes/validation.pipe';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { HttpExceptionFilter } from './filters/exception.filter';
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  try {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-      rawBody: true,
-    });
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const port = configService.appPort;
+  const apiPrefix = 'api';
+  app.setGlobalPrefix(apiPrefix);
 
-    app.setGlobalPrefix('/api/v1');
+  SwaggerBuilder.make(app);
 
-    app.useGlobalPipes(new ZodValidationPipe());
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(
+  app.useGlobalPipes(CustomValidationPipe);
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(
     new LoggingInterceptor(),
     new TransformInterceptor(),
   );
-    
 
-    app.enableCors({
-      origin: '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
-    });
-
-    SwaggerBuilder.make(app);
-
-    const configService = app.get(ConfigService);
-    const port = configService.get('APP_PORT');
-
-    await app.listen(port);
-
-    const appUrl = await app.getUrl();
-
-    logger.log(`Application is running on: ${appUrl}`);
-  } catch (error) {
-    logger.error('Application bootstrap failed:', error);
-    process.exit(1);
-  }
+  await app.listen(port);
 }
-
-void bootstrap();
+bootstrap();

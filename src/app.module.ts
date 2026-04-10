@@ -1,13 +1,18 @@
 import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
-import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { MailModule } from './modules/mail/mail.module';
-import { OtpModule } from './otp/otp.module';
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
+
 @Module({
-  imports: [ConfigModule, AuthModule, RedisModule, MailModule, OtpModule],
-  controllers: [],
+  imports: [
+    NestConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env', 
+    }),
+    ConfigModule,
+  ],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
