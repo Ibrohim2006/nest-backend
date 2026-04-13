@@ -5,7 +5,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { CoreEntity } from '../../../core/core.entity';
+import { CoreEntity } from '@/core/core.entity';
 
 @Entity({ name: 'users' })
 @Index(['email', 'isVerified'])
@@ -27,6 +27,9 @@ export class UserEntity extends CoreEntity {
 
   @Column({ default: false })
   isVerified: boolean;
+  
+  @Column({ default: false })
+  isBlocked: boolean;
 
   @BeforeInsert()
   @BeforeUpdate()

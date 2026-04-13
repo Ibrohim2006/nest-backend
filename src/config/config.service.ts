@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { databaseConfig, DatabaseConfig } from './database/databae.config';
+import { databaseConfig, DatabaseConfig } from './database/database.config';
 import { redisConfig, RedisConfig } from './redis/redis.config';
+import { mailConfig, MailConfig } from './mail/mail.config';
 
 @Injectable()
 export class ConfigService {
   private readonly dbConfig: DatabaseConfig;
   private readonly rConfig: RedisConfig;
+  private readonly mConfig: MailConfig;
 
   constructor() {
     this.dbConfig = databaseConfig();
     this.rConfig = redisConfig();
+    this.mConfig = mailConfig();
 
     if (!process.env.APP_PORT || !process.env.NODE_ENV) {
       throw new Error('APP_PORT or NODE_ENV is not set in .env');
@@ -30,5 +33,9 @@ export class ConfigService {
 
   get redis(): RedisConfig {
     return this.rConfig;
+  }
+
+  get mail(): MailConfig {
+    return this.mConfig;
   }
 }

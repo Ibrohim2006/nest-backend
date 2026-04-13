@@ -1,18 +1,15 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
+import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
-@Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '1234',
-      database: 'test_db',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
-  ],
-})
-export class AppModule {}
+export const databaseConfig: TypeOrmModuleAsyncOptions = {
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    type: 'postgres',
+    url: config.get<string>('DATABASE_URL'),
+    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+    synchronize: false,
+    migrationsRun: false,
+    logging: config.get<string>('NODE_ENV') !== 'production',
+  }),
+};
