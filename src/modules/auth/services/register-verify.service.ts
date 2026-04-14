@@ -21,21 +21,8 @@ export class VerifyEmailService {
     if (!user) throw new NotFoundException('User not found');
     if (user.isVerified) throw new BadRequestException('Email is already verified');
 
-    // DB da block bo'lganmi?
     if (user.isBlocked) {
-      const blockedKey = `email_verification:${user.id}:blocked`;
-      const ttl = await this.redisService.getTtl(blockedKey);
-
-      if (ttl > 0) {
-        const hoursLeft = Math.ceil(ttl / 3600);
-        throw new BadRequestException(
-          `Too many attempts. Try again in ${hoursLeft} hour(s)`,
-        );
-      }
-
-      // TTL tugagan → blockni ochib yuboramiz
-      user.isBlocked = false;
-      await this.usersService.save(user);
+      throw new BadRequestException('Your account is blocked');
     }
 
     const key = `email_verification:${user.id}:register`;
@@ -50,15 +37,12 @@ export class VerifyEmailService {
       verification.attempts += 1;
 
       if (verification.attempts >= 5) {
-        // Redis va DB ga block
-        const blockedKey = `email_verification:${user.id}:blocked`;
         await this.redisService.del(key);
-        await this.redisService.set(blockedKey, '1', 86400);
 
         user.isBlocked = true;
         await this.usersService.save(user);
 
-        throw new BadRequestException('Too many attempts. Try again in 24 hours');
+        throw new BadRequestException('Too many attempts. Your account is blocked');
       }
 
       const ttl = await this.redisService.getTtl(key);
@@ -71,12 +55,9 @@ export class VerifyEmailService {
       );
     }
 
-    // Kod to'g'ri → verify qilish
     await this.redisService.del(key);
-    await this.redisService.del(`email_verification:${user.id}:blocked`);
 
     user.isVerified = true;
-    user.isBlocked = false;
     await this.usersService.save(user);
 
     return {

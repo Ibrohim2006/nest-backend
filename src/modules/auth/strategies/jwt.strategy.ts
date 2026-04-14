@@ -1,9 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { ConfigService } from '@/config/config.service'; 
 import { UserEntity } from '../../user/entities/user.entity';
 import { RedisService } from '../../redis/redis.service';
 
@@ -28,7 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('APP_JWT_SECRET'), 
+
+      // 🔥 ENG MUHIM JOY
+      secretOrKey: configService.jwt.accessSecret,
+
       passReqToCallback: false,
     });
   }
@@ -48,6 +52,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await this.userRepository.findOne({
       where: { id: payload.sub },
     });
+
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }

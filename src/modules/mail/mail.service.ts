@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as fs from 'fs';
-import * as path from 'path';
 import { ConfigService } from '@/config/config.service';
+
+import { verificationTemplate } from './templates/verification';
+import { forgotPasswordTemplate } from './templates/forgot-password';
 
 @Injectable()
 export class MailService {
@@ -19,30 +20,12 @@ export class MailService {
     });
   }
 
-  private loadTemplate(
-    templateName: string,
-    variables: Record<string, string | number>,
-  ): string {
-    const templatePath = path.join(
-      __dirname,
-      'templates',
-      `${templateName}.html`,
-    );
-    let html = fs.readFileSync(templatePath, 'utf-8');
-
-    for (const [key, value] of Object.entries(variables)) {
-      html = html.replaceAll(`{{${key}}}`, String(value));
-    }
-
-    return html;
-  }
-
   async sendVerificationEmail(
     email: string,
     username: string,
     code: number,
   ): Promise<void> {
-    const html = this.loadTemplate('verification', { username, code });
+    const html = verificationTemplate(username, code);
 
     await this.transporter.sendMail({
       from: this.configService.mail.from,
@@ -57,7 +40,7 @@ export class MailService {
     username: string,
     code: number,
   ): Promise<void> {
-    const html = this.loadTemplate('forgot-password', { username, code });
+    const html = forgotPasswordTemplate(username, code);
 
     await this.transporter.sendMail({
       from: this.configService.mail.from,

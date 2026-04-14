@@ -1,9 +1,16 @@
-import { UsersModule } from './../users/users.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+
+import { UserModule } from '../user/user.module';
 import { UserEntity } from '../user/entities/user.entity';
 import { MailModule } from '../mail/mail.module';
+import { RedisModule } from '../redis/redis.module';
+
+import { ConfigModule } from '@/config/config.module'; 
+import { ConfigService } from '@/config/config.service'; 
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { RegisterService } from './services/register.service';
@@ -11,9 +18,8 @@ import { VerifyEmailService } from './services/register-verify.service';
 import { LoginService } from './services/login.service';
 import { LogoutService } from './services/logout.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import { RedisModule } from '../redis/redis.module';
+
+import { StringValue } from 'ms';
 
 @Module({
   imports: [
@@ -21,14 +27,15 @@ import { RedisModule } from '../redis/redis.module';
     MailModule,
     PassportModule,
     RedisModule,
-    UsersModule,
+    UserModule,
+    ConfigModule, // 🔥 GLOBAL bo‘lsa ham qo‘shish yaxshi
+
     JwtModule.registerAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService): JwtModuleOptions => ({
-        secret: config.getOrThrow<string>('APP_JWT_SECRET'),
+      useFactory: (config: ConfigService) => ({
+        secret: config.jwt.accessSecret, 
         signOptions: {
-          expiresIn: config.getOrThrow<string>('APP_JWT_EXPIRES_IN') as any,
+          expiresIn: config.jwt.accessExpiresIn as StringValue,
         },
       }),
     }),

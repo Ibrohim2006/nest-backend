@@ -1,8 +1,12 @@
+export const forgotPasswordTemplate = (username: string, code: number) => {
+  return `
 <!DOCTYPE html>
 <html>
   <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2>Hello, {{username}}! 🔐</h2>
+    <h2>Hello, ${username}! 🔐</h2>
+
     <p>We received a request to reset your password. Use the code below to proceed:</p>
+
     <div style="
       font-size: 36px;
       font-weight: bold;
@@ -14,13 +18,19 @@
       margin: 24px 0;
       color: #e8590c;
     ">
-      {{code}}
+      ${code}
     </div>
+
     <p>This code is valid for <strong>5 minutes</strong>.</p>
+
     <p>If you did not request a password reset, please secure your account immediately.</p>
+
     <hr />
+
     <p style="color: #888; font-size: 12px;">
       If you did not make this request, please ignore this email.
     </p>
   </body>
 </html>
+  `;
+};

@@ -5,17 +5,17 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { CoreEntity } from '@/core/core.entity';
+import { CoreEntity } from '../../../core/core.entity';
 
 @Entity({ name: 'users' })
 @Index(['email', 'isVerified'])
 export class UserEntity extends CoreEntity {
   @Index()
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   firstName: string;
 
   @Index()
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   lastName: string;
 
   @Index()
